@@ -15,9 +15,10 @@ def emptyNet():
 		net.addController('c0',controller=RemoteController,ip='127.0.0.1',port=6633)
 
 		info( '*** Adding Hosts\n' )
-		h1 = net.addHost('h1')#, ip='172.16.20.10/24',  defaultRoute = 'via 172.16.20.1')
-		h2 = net.addHost('h2')#, ip='192.168.30.11/24', defaultRoute = 'via 192.168.30.1')
-		
+		h1 = net.addHost('h1',ip='10.0.0.1',mac='00:00:00:00:00:01') 
+		h2 = net.addHost('h2',ip='10.0.0.2',mac='00:00:00:00:00:02') 
+		#h3 = net.addHost('h3',ip='10.0.0.3',mac='00:00:00:00:00:03')
+	
 
 		info( '*** Adding Switches\n' )
 		s1 = net.addSwitch('s1')
@@ -35,18 +36,25 @@ def emptyNet():
 		net.addLink(s5, s6)
 		net.addLink(s6, s1)
 		net.addLink(h1, s1)
-		net.addLink(s2, s6)
-		net.addLink(s3, s5)
-		net.addLink(s4, h2)
+		#net.addLink(s2, s6)
+		#net.addLink(s3, s5)
+		net.addLink(h2, s4)
+		#net.addLink(h3, s5)
 		
 		info ( '*** Starting Network\n' )
 		net.start()
-		s1.cmd('ovs-vsctl set bridge s1 protocols=OpenFlow13 stp-enable=true')
-		s2.cmd('ovs-vsctl set bridge s2 protocols=OpenFlow13 stp-enable=true')
-		s3.cmd('ovs-vsctl set bridge s3 protocols=OpenFlow13 stp-enable=true')
-		s4.cmd('ovs-vsctl set bridge s4 protocols=OpenFlow13 stp-enable=true')
-		s5.cmd('ovs-vsctl set bridge s5 protocols=OpenFlow13 stp-enable=true')
-		s6.cmd('ovs-vsctl set bridge s6 protocols=OpenFlow13 stp-enable=true')
+		s1.cmd('ovs-vsctl set bridge s1 protocols=OpenFlow13')
+		 #stp-enable=true')
+		s2.cmd('ovs-vsctl set bridge s2 protocols=OpenFlow13')
+		 #stp-enable=true')
+		s3.cmd('ovs-vsctl set bridge s3 protocols=OpenFlow13')
+		 #stp-enable=true')
+		s4.cmd('ovs-vsctl set bridge s4 protocols=OpenFlow13')
+		 #stp-enable=true')
+		s5.cmd('ovs-vsctl set bridge s5 protocols=OpenFlow13')
+		 #stp-enable=true')
+		s6.cmd('ovs-vsctl set bridge s6 protocols=OpenFlow13')
+		 #stp-enable=true')
 
 
 		info ( '***Running CLI\n' )
