@@ -1,3 +1,4 @@
+
 #!/usr/bin/python
 from mininet.net import Mininet
 from mininet.node import Controller, RemoteController, OVSController
@@ -18,6 +19,7 @@ def emptyNet():
 		h1 = net.addHost('h1',ip='10.0.0.1',mac='00:00:00:00:00:01') 
 		h2 = net.addHost('h2',ip='10.0.0.2',mac='00:00:00:00:00:02') 
 		#h3 = net.addHost('h3',ip='10.0.0.3',mac='00:00:00:00:00:03')
+		print("Appending Something")
 	
 
 		info( '*** Adding Switches\n' )
@@ -34,10 +36,10 @@ def emptyNet():
 		net.addLink(s3, s4)
 		net.addLink(s4, s5)
 		net.addLink(s5, s6)
-		net.addLink(s6, s1)
+		#net.addLink(s6, s1)
 		net.addLink(h1, s1)
-		#net.addLink(s2, s6)
-		#net.addLink(s3, s5)
+		net.addLink(s2, s6)
+		net.addLink(s3, s5)
 		net.addLink(h2, s4)
 		#net.addLink(h3, s5)
 		
@@ -55,7 +57,6 @@ def emptyNet():
 		 #stp-enable=true')
 		s6.cmd('ovs-vsctl set bridge s6 protocols=OpenFlow13')
 		 #stp-enable=true')
-
 
 		info ( '***Running CLI\n' )
 		CLI(net)

@@ -1,4 +1,4 @@
- # Copyright (C) 2011 Nippon Telegraph and Telephone Corporation.
+# Copyright (C) 2011 Nippon Telegraph and Telephone Corporation.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -32,8 +32,8 @@ from ryu.controller import dpset
 from ryu.lib import dpid
 from ryu.controller import handler
 from threading import Timer
-#from shared_back_up_flows import *
-#from simulator_requests import *
+from shared_back_up_flows import *
+from simulator_requests import *
 
 
 
@@ -59,7 +59,10 @@ class SimpleSwitch14(app_manager.RyuApp):
         self.primary_flow_list=[]
         #self.survi_paths = SurvSimReq(self.link_ids,self.datapath_list)
         self.survi_paths=0
+        self.switch_io_ports={}
+        self.switch_host={}
         #self.bu_flow = Backup_Paths(msg, self.link_ids, self.datapath_list)
+
 
 
     @set_ev_cls(ofp_event.EventOFPSwitchFeatures, CONFIG_DISPATCHER)
@@ -133,14 +136,23 @@ class SimpleSwitch14(app_manager.RyuApp):
             if link.dst.dpid in self.switches:
                 self.interior_ports[link.dst.dpid].add(link.dst.port_no)
 
-            if len(self.link_to_port) == 214:  ## Update this constant, changed it 12 because running normal topology
+            if len(self.link_to_port) ==42:  ## Update this constant, changed it 12 because running normal topology
                 for i in self.link_to_port.keys():
                     self.key.append(i)
                 for i in self.link_to_port.values():
                     self.value.append(i)
                 for i in range(len(self.link_to_port)):
                     self.link_ids[i + 1] = self.key[i] + self.value[i]
+                for key, value in self.link_to_port.items():
+                    if str(key[0]) in self.switch_io_ports:
+                        temp1 = self.switch_io_ports.get(str(key[0]))
+                        temp1[str(key[1])] = value[0];
+                    else:
+                        temp = {}
+                        temp[str(key[1])] = value[0];
+                        self.switch_io_ports[str(key[0])] = temp;
 
+        self.logger.info("Switch_io_ports: {}".format(self.switch_io_ports))
         self.logger.info('Link_ids {}'.format(self.link_ids))
         self.logger.info('Link_to_Port {}'.format(self.link_to_port))
         #self.logger.info('Interior_Ports {}'.format(self.interior_ports))
@@ -160,6 +172,10 @@ class SimpleSwitch14(app_manager.RyuApp):
                 self.dpid_port_set.add(dpid_port_pair)
 
         self.logger.info('Access_ports : {}'.format(self.dpid_port_set))
+        if len(self.dpid_port_set)==14:
+            for i in self.dpid_port_set:
+                self.switch_host[str(i[0])] = ('10.0.0.%s' % str(i[0]), i[1])
+            self.logger.info('Switch Host : {}'.format(self.switch_host))
 
     events = [event.EventSwitchEnter,event.EventSwitchLeave]
 
@@ -172,9 +188,9 @@ class SimpleSwitch14(app_manager.RyuApp):
         switch_list = get_switch(self.topology_api_app, None)
         self.create_port_map(switch_list)
         self.switches = self.switch_port_table.keys()
-        #if len(self.datapath_list) == 62:      ### constant change with every topology
-            #print("Yes Here ")
-            #self.path_installer()
+        if len(self.datapath_list) ==14:      ### constant change with every topology
+            print("Primary Flow Installer Called ")
+            self.path_installer()
         #self.logger.info("datpath_listttttttttttt {} =".format(self.datapath_list))
 
     @set_ev_cls(event.EventLinkAdd,event.EventLinkDelete)
@@ -185,7 +201,8 @@ class SimpleSwitch14(app_manager.RyuApp):
         links = get_link(self.topology_api_app, None)
         self.create_interior_links(links)
         self.create_access_ports()
-        self.logger.info("datapath_list sahi ho ja : {}".format(self.datapath_list))
+
+        #self.logger.info("datapath_list sahi ho ja : {}".format(self.datapath_list))
         self.logger.info("********************from get_links*********************")
 
         ##self.path_installer()  Throws Error and program terminates
@@ -198,29 +215,44 @@ class SimpleSwitch14(app_manager.RyuApp):
         print("Event Link Delete inside EventLinkDelete",msg)
         self.logger.info("datapath_list sahi ho ja : {}".format(self.datapath_list))
 
-        
-        '''
-        bu_flow = shared_back_up_flows.Backup_Paths(msg, self.link_ids, self.datapath_list)
-        sp_link_fail=self.survi_paths.get_link_fail_Map()
-        bu_flow.identify_failed_link(sp_link_fail)
+        msg = ev.link.to_dict()
+        if len(self.datapath_list)==14:
 
-        sp_bu_paths = self.survi_paths.get_back_up_Paths()
-        bu_flow.find_backup_paths(sp_bu_paths)
+            sp_active_paths=self.survi_paths.get_active_paths()
+            bu_flow = shared_back_up_flows.Backup_Paths(msg, self.link_ids, self.datapath_list,sp_active_paths)
 
-        sp_total_paths = self.survi_paths.get_total_Paths()
-        sp_route_map=self.survi_paths.get_routeMap()
-        sp_all_flows = self.survi_paths.get_all_Flows()
-        bu_flow.backup_flow_rule_IDs(sp_total_paths,sp_all_flows)
+            sp_bu_paths = self.survi_paths.get_back_up_Paths()
+            sp_link_fail=self.survi_paths.get_link_fail_Map()
+
+            bu_flow.identify_failed_link(sp_link_fail,sp_bu_paths)
 
 
-        bu_flow.failed_flow_rule_IDs(sp_total_paths,sp_all_flows)
-        # Delete
+            bu_flow.find_backup_paths(sp_bu_paths)
 
-        bu_flow.delete_flows_failed_paths()
-        # Add
+            sp_total_paths = self.survi_paths.get_total_Paths()
+            sp_route_map=self.survi_paths.get_routeMap()
+            sp_all_flows = self.survi_paths.get_all_Flows()
+            bu_flow.backup_flow_rule_IDs(sp_total_paths,sp_all_flows)
 
-        bu_flow.add_flows_backup_paths()
-        # Adding the back_up_flows'''
+
+            bu_flow.failed_flow_rule_IDs(sp_total_paths,sp_all_flows)
+            # Delete
+
+            bu_flow.delete_flows_failed_paths()
+            # Add
+
+            bu_flow.add_flows_backup_paths()
+            # Adding the back_up_flows'''
+            self.survi_paths.set_active_paths(bu_flow.get_updated_active_paths())
+
+    @set_ev_cls(ofp_event.EventOFPPortStatus, MAIN_DISPATCHER)
+    def get_port_status(self,ev):
+        msg = ev.msg
+        self.try_port_state(msg)
+    def try_port_state(self,msg):
+        self.logger.info(" Inside Trrrrryyyyyyy Port State")
+        self.logger.info(" Tryyyy Port State: {}".format(msg))
+
 
     def add_flow(self, datapath, priority, match, actions):
         ofproto = datapath.ofproto
@@ -324,14 +356,14 @@ class SimpleSwitch14(app_manager.RyuApp):
     ### Creating an object of Class SurvSimReq(self)-----------------------------------###
 
     def path_installer(self):
-        self.survi_paths = SurvSimReq(self.link_ids, self.datapath_list)
+        self.survi_paths = SurvSimReq(self.link_ids, self.datapath_list,self.switch_io_ports,self.switch_host)
         sp_link_fail = self.survi_paths.get_link_fail_Map()
         flows_req=self.survi_paths.get_all_Flows()
         for key,val in flows_req.items():
             if key[1]==1:
                 self.primary_flow_list.append(val)
                 for i in self.primary_flow_list:
-                    print("i000000",i[0])
+                    #print("i000000",i[0])
                     ofproto = i[0].ofproto
                     parser = i[0].ofproto_parser
                     actions = []
