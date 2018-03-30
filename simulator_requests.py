@@ -43,6 +43,7 @@ class SurvSimReq():
         self.rsp_routes_u = 0
         self.rsp_routes=0
         self.active_paths=[]
+        self.inactive_paths=[]
         self.populate_mapd_DB()
 
 
@@ -61,8 +62,17 @@ class SurvSimReq():
 
 # populate_maps_DB function:
     def request_routes(self):
-        payload = payload={"routingParams":[{"source":"5","destinations":[14]},{"source":"6","destinations":[10]},
-                                            {"source":"8","destinations":[12]}],
+        payload={"routingParams":[{"source":"3", "destinations":[12]},
+                {"source":"3", "destinations":[13]},
+                {"source":"3", "destinations":[14]},
+                {"source":"4", "destinations":[5]},
+                {"source":"4", "destinations":[6]},
+                {"source":"4", "destinations":[7]},
+                {"source":"4", "destinations":[8]},
+                {"source":"4", "destinations":[9]},
+                {"source":"4", "destinations":[10]},
+                {"source":"4", "destinations":[11]},
+                {"source":"4", "destinations":[12]}],
 
 		"network":{"nodes":["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13","14"],
 		"links":["1-7", "1-11", "1-12", "2-6", "2-10", "3-6", "3-8", "3-12", "4-8", "4-10", "5-6", "5-7",
@@ -116,6 +126,7 @@ class SurvSimReq():
 
         print("Route_map:", self.routeMap)
         print("Active Paths",self.active_paths)
+        print("Inactive Paths from Simulator Requests :",self.inactive_paths)
         return self.routeMap
 
 
@@ -230,6 +241,15 @@ class SurvSimReq():
 
     def set_active_paths(self,active_paths):
         self.active_paths=active_paths
+        print("Active Paths",self.active_paths)
+        return
+
+    def get_inactive_paths(self):
+        return self.inactive_paths
+
+    def set_inactive_paths(self,inactive_paths):
+        self.inactive_paths=inactive_paths
+        print("Inactive Paths from Simulator Requests :",self.inactive_paths)
         return
 
 

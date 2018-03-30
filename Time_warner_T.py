@@ -95,6 +95,17 @@ def emptyNet():
     # sleep(2)
     # net.pingAll()
 
+    #TODO: Change the Links to All 91 combinations
+    listify = []
+    #for pair in Links:
+        #src, dst = net.get('h' + str(pair[0]), 'h' + str(pair[1]))
+        #listify.append(src)
+        #listify.append(dst)
+        #print("after appending listify", listify)
+        #net.pingFull(listify)
+        #sleep(2)
+        #listify = []
+
     info('*** Stopping network')
     net.stop()
 

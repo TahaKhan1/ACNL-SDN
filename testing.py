@@ -3,6 +3,7 @@ from mininet.node import Controller, RemoteController
 from mininet.cli import CLI
 from mininet.log import setLogLevel, info
 from time import sleep
+#import numpy as np
 
 
 ## NSF Topology with one node less
@@ -22,16 +23,20 @@ def emptyNet():
     info('*** Adding hosts\n')
 
     h = []
+    h_fail=[]
     for i in Nodes:
         host = 'h' + str(i)
         a = list(host)
         if len(a)>2:
             j = a[1] + a[2]
+            h_fail.append(j)
             h.append(net.addHost(host,ip='10.0.0.%s' % j, mac='00:00:00:00:00:0%s' % j))
         else:
             j=a[1]
+            h_fail.append(j)
             h.append(net.addHost(host,ip='10.0.0.%s' % j, mac='00:00:00:00:00:0%s' % j))
     print("hhhhh",h)
+    print("h_fail",h_fail)
 
 
     info('*** Adding switch\n')
@@ -51,13 +56,9 @@ def emptyNet():
         i = i + 1;
         net.addLink('s' + str(link_pair[0]), 's' + str(link_pair[1]))
         #print('s' + str(link_pair[0]), 's' + str(link_pair[1]), i)
-    
-    def failure(Links):
-    	for i in Links:
-			#sleep(20)
-			print("Link Down")
-			net.configLinkStatus('s' + str(link_pair[0]), 's' + str(link_pair[1]),'down')
-			#sleep(5)   
+  
+		#net.configLinkStatus('s' + str(link_pair[0]), 's' + str(link_pair[1]),'down')
+		#sleep(5)   
      
 
     info('*** Starting network\n')
@@ -67,14 +68,21 @@ def emptyNet():
 
     info('*** Running CLI\n')
     CLI(net)    
-    #sleep(5)
-    failure(Links)     
-    #for i in Links:
+
+    listify=[] 
+    for pair in Links:
+		src, dst = net.get('h'+str(pair[0]),'h'+str(pair[1]))
+		listify.append(src)
+		listify.append(dst)
+		print("after appending listify",listify)
+		net.pingFull(listify)
+		listify=[]
+    	
+    		
     	#sleep(20)
     	#print("Link Down")
-    	#net.configLinkStatus('s' + str(link_pair[0]), 's' + str(link_pair[1]),'down')
-    	#sleep(5)
-    	#net.pingAll()
+    	#net.configLinkStatus('s' + str(link_pair[0]), 's' + str(link_pair[1]),'down')    	
+    
     	
     info('*** Stopping network')
     #net.stop()

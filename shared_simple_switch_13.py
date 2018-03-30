@@ -61,9 +61,17 @@ class SimpleSwitch14(app_manager.RyuApp):
         self.survi_paths=0
         self.switch_io_ports={}
         self.switch_host={}
+        self.sum_active_paths=[]
+        self.sum_backup_occur=[]
+        self.sum_backup_fail=[]
+        self.sum_no_update=[]
         #self.bu_flow = Backup_Paths(msg, self.link_ids, self.datapath_list)
 
-
+    def print_metrics(self):
+        print("Sum Active Paths: ", self.sum_active_paths)
+        print("Sum Backup Paths: ", self.sum_backup_occur)
+        print("Sum Backup Fail: ", self.sum_backup_fail)
+        print("Sum No Update: ", self.sum_no_update)
 
     @set_ev_cls(ofp_event.EventOFPSwitchFeatures, CONFIG_DISPATCHER)
     def switch_features_handler(self, ev):
@@ -213,21 +221,25 @@ class SimpleSwitch14(app_manager.RyuApp):
         self.logger.info("*********Event Link Delete port lost Called**************")
         msg = ev.link.to_dict()
         print("Event Link Delete inside EventLinkDelete",msg)
-        self.logger.info("datapath_list sahi ho ja : {}".format(self.datapath_list))
+        #self.logger.info("datapath_list sahi ho ja : {}".format(self.datapath_list))
 
         msg = ev.link.to_dict()
         if len(self.datapath_list)==14:
 
-            sp_active_paths=self.survi_paths.get_active_paths()
-            bu_flow = shared_back_up_flows.Backup_Paths(msg, self.link_ids, self.datapath_list,sp_active_paths)
+            try:
+                sp_active_paths=self.survi_paths.get_active_paths()
+                sp_inactive_paths=self.survi_paths.get_inactive_paths()
+                print("Active Paths", sp_active_paths)
+                print("Inactive Paths from Simulator Requests :", sp_inactive_paths)
+            except:
+                sp_inactive_paths = []
+                sp_active_paths = []
+            bu_flow = shared_back_up_flows.Backup_Paths(msg, self.link_ids, self.datapath_list,sp_active_paths, sp_inactive_paths)
 
             sp_bu_paths = self.survi_paths.get_back_up_Paths()
             sp_link_fail=self.survi_paths.get_link_fail_Map()
 
             bu_flow.identify_failed_link(sp_link_fail,sp_bu_paths)
-
-
-            bu_flow.find_backup_paths(sp_bu_paths)
 
             sp_total_paths = self.survi_paths.get_total_Paths()
             sp_route_map=self.survi_paths.get_routeMap()
@@ -244,6 +256,29 @@ class SimpleSwitch14(app_manager.RyuApp):
             bu_flow.add_flows_backup_paths()
             # Adding the back_up_flows'''
             self.survi_paths.set_active_paths(bu_flow.get_updated_active_paths())
+            self.survi_paths.set_inactive_paths(bu_flow.get_updated_inactive_paths())
+
+            metrics_list = bu_flow.get_metrics()
+
+            self.sum_active_paths.append(metrics_list[0])
+
+            try:
+                aggregate_backup_occur = self.sum_backup_occur[-1] + metrics_list[1]
+                self.sum_backup_occur.append(aggregate_backup_occur)
+
+                aggregate_backup_fail = self.sum_backup_fail[-1] + metrics_list[2]
+                self.sum_backup_fail.append(aggregate_backup_fail)
+            except:
+                aggregate_backup_occur = metrics_list[1]
+                self.sum_backup_occur.append(aggregate_backup_occur)
+
+                aggregate_backup_fail = metrics_list[2]
+                self.sum_backup_fail.append(aggregate_backup_fail)
+
+
+            self.sum_no_update.append(metrics_list[3])
+
+            self.print_metrics()
 
     @set_ev_cls(ofp_event.EventOFPPortStatus, MAIN_DISPATCHER)
     def get_port_status(self,ev):

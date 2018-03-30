@@ -33,6 +33,7 @@ def perfTest():
     print "Testing bandwidth between h1 and h4"
     h1, h4 = net.get( 'h1', 'h4' )
     listify.append(h1)
+    print("After appending h1",listify)
     listify.append(h4)
     print("Listify append")
     net.pingFull(listify)
