@@ -5,6 +5,7 @@ from ryu.lib import mac
 import logging
 import shared_simple_switch_13
 import simulator_requests
+import _csv
 
 
 class Backup_Paths():
@@ -51,24 +52,24 @@ class Backup_Paths():
 
     def identify_failed_link(self,sp_link_fail,sp_bu_paths):
         # list of path IDs affected
-        print("Link Fail Mapppp{}".format(sp_link_fail))
+        #print("Link Fail Mapppp{}".format(sp_link_fail))
         #print("Active _Paths{}".format(self.active_paths))
         dpid = []
         port_no = []
         for i in self.msg.values():
             dpid.append(int(i['dpid'],16))
             port_no.append(int(i['port_no']))
-        print(dpid)
-        print(port_no)
+        #print(dpid)
+        #print(port_no)
 
         link_failed = (dpid[0], dpid[1], port_no[0], port_no[1])
-        print(link_failed)
+        #print(link_failed)
         # link_ids = {5: (1, '2', '3', '4'), 1: ('2', '3', '6', '7'), 3: ('4', '7', '8', '9')}
         # fail_map = {1: (1, '2', '3', '4')}
 
-        print("Affected Links tuple:{}".format(i))
-        print("Current Active List :",self.active_paths)
-        print("Current InActive List :", self.inactive_paths)
+        #print("Affected Links tuple:{}".format(i))
+        #print("Current Active List :",self.active_paths)
+        #print("Current InActive List :", self.inactive_paths)
 
         link_ids_key = self.link_ids.keys()[self.link_ids.values().index(link_failed)]
         self.failed_links.append(link_ids_key)
@@ -85,9 +86,11 @@ class Backup_Paths():
                 if current_path in sp_bu_paths:
                     new_path = sp_bu_paths[current_path]
                     if new_path not in self.inactive_paths:
-                        print("1")
-                        print("Current path: ", current_path)
-                        print("New path: ", new_path)
+
+
+                        #print("1")
+                        #print("Current path: ", current_path)
+                        #print("New path: ", new_path)
                         self.backup_ID.append(new_path)
                         self.sum_backup_occur = self.sum_backup_occur + 1
                         #Add new path to active paths if
@@ -96,13 +99,14 @@ class Backup_Paths():
                         self.active_paths.append(new_path)
                     else:
                         self.sum_backup_fail = self.sum_backup_fail + 1
-                        print("2")
-                        print("Current path: ", current_path)
-                        print("New path: ", new_path)
+                        #print("2")
+                        #print("Current path: ", current_path)
+                        #print("New path: ", new_path)
                     self.failed_paths.append(current_path)
                 else:
-                    print("3")
-                    print("Current path: ", current_path)
+                    ## is it last back up path
+                    #print("3")
+                    #print("Current path: ", current_path)
                     self.sum_backup_fail = self.sum_backup_fail + 1
 
             else:
@@ -116,36 +120,36 @@ class Backup_Paths():
                     if path in sp_bu_paths:
                         sp_bu_paths[current_key] = sp_bu_paths[path]
 
-
-
         self.sum_active_paths = len(self.active_paths)
         if self.sum_active_paths != 0:
             self.sum_no_update = self.sum_active_paths - (self.sum_backup_fail+ self.sum_backup_occur)
         else:
             self.sum_no_update = 0
-        print("Backup Flows")
+        #print("Backup Flows")
         self.print_metrics()
+
         self.metrics = [self.sum_active_paths, self.sum_backup_occur, self.sum_backup_fail, self.sum_no_update]
 
 
                  ### sp_link_fail returns:link_fail_map
-        print("Active Paths after Failure",self.active_paths)
-        print("Number of Active Paths after Failure",len(self.active_paths))
-        print("InActive Paths after Failure",self.inactive_paths)
-        print("Number of InActive Paths after Failure",len(self.inactive_paths))
-        print("Link_ID affected and appending to failed_link:{}".format(self.failed_links))
-        print("Path failed IDs and appending to failed_paths:{}".format(self.failed_paths))
+        #print("Active Paths after Failure",self.active_paths)
+        #print("Number of Active Paths after Failure",len(self.active_paths))
+        #print("InActive Paths after Failure",self.inactive_paths)
+        #print("Number of InActive Paths after Failure",len(self.inactive_paths))
+        #print("Link_ID affected and appending to failed_link:{}".format(self.failed_links))
+        #print("Path failed IDs and appending to failed_paths:{}".format(self.failed_paths))
+
 
     ### failed_path=[[(2,2),(4,1)]
 
 
     def backup_flow_rule_IDs(self,sp_total_paths,sp_all_flows):
-        print("Backup_Flow_Rule_IDSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS")
-        print("Length of All Flows using object:",len(sp_all_flows))
+        #print("Backup_Flow_Rule_IDSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS")
+        #print("Length of All Flows using object:",len(sp_all_flows))
         # iterate backup paths
         for i in self.backup_ID:
             self.backup_paths.append(sp_total_paths[i])
-            print("back_up_path inside method backup_flow_rule_IDS",self.backup_paths)
+            #print("back_up_path inside method backup_flow_rule_IDS",self.backup_paths)
 
         # backup_paths=[[(2, 1, '4'), (2, 1, '6'), (2, 1, '5'), (2, 1, '1')],[(3, 2, '1'), (3, 2, '5'), (3, 2, '3'), (3, 2, '4'), (3, 2, '6')]]
         for i in self.backup_paths:
@@ -154,9 +158,9 @@ class Backup_Paths():
                     #print("total_paths keyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy",key)
                     if path_rule == key:
                         self.backup_flows[len(self.backup_flows)+1] = val
-        print("Backup_Flows in method shared_back_up_flows",self.backup_flows)
-        self.result_unaffected_flows[len(self.result_unaffected_flows)+1]=len(sp_all_flows)-len(self.backup_flows)
-        print("Number of Unaffected flows are each single link failures :{}", self.result_unaffected_flows)
+        #print("Backup_Flows in method shared_back_up_flows",self.backup_flows)
+        #self.result_unaffected_flows[len(self.result_unaffected_flows)+1]=len(sp_all_flows)-len(self.backup_flows)
+        #print("Number of Unaffected flows are each single link failures :{}", self.result_unaffected_flows)
 
         #self.backup_flows.append(sp_total_paths[path_rule])
         #print("Backup Paths dict: {}".format(self.backup_flows))
@@ -166,16 +170,16 @@ class Backup_Paths():
         for path in self.failed_paths:
                 self.path_failed_list.append(sp_total_paths[path])
 
-        print("Paths Failed List: {}".format(self.path_failed_list))
+        #print("Paths Failed List: {}".format(self.path_failed_list))
         for i in self.path_failed_list:
             for flow_dis in i:
                 for key,val in sp_all_flows.items():
                     #print("total_paths keyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy",key)
                     if flow_dis == key:
                         self.failed_flows[len(self.failed_flows)+1] = val
-        print("Flows to be deleted Failed Flows : {}".format(self.failed_flows))
+        #print("Flows to be deleted Failed Flows : {}".format(self.failed_flows))
         self.result_affected_flows[len(self.result_affected_flows)+1]=len(self.failed_flows)
-        print("Number of affected flows are each single link failures :{}",self.result_affected_flows)
+        #print("Number of affected flows are each single link failures :{}",self.result_affected_flows)
 
     ### Making failed_flows and backup_flows a list in which primary_flows(tuples) are
     ### appended and later will be iterated in methods like delete_flows_failed_paths
@@ -219,5 +223,6 @@ class Backup_Paths():
         print("Sum Backup Fail: ", self.sum_backup_fail)
         print("Sum No Update: ", self.sum_no_update)
 
-    print("Nata")
+
+    #print("Nata")
 

@@ -34,6 +34,8 @@ from ryu.controller import handler
 from threading import Timer
 from shared_back_up_flows import *
 from simulator_requests import *
+import csv
+import time
 
 
 
@@ -65,6 +67,28 @@ class SimpleSwitch14(app_manager.RyuApp):
         self.sum_backup_occur=[]
         self.sum_backup_fail=[]
         self.sum_no_update=[]
+        self.sum_call_for_backup=0
+        self.num_link_add_event=0
+        self.num_link_delete_event=0
+        self.links_deleted=set()
+        self.links=[]
+
+
+        with open('/home/taha/Documents/tkhan/Results/sum_active_paths.csv', 'ab') as f:
+            writer = csv.writer(f)
+            writer.writerow([])
+
+        with open('/home/taha/Documents/tkhan/Results/sum_backup_occur_paths.csv', 'ab') as f:
+            writer = csv.writer(f)
+            writer.writerow([])
+
+        with open('/home/taha/Documents/tkhan/Results/sum_backup_fail_paths.csv', 'ab') as f:
+            writer = csv.writer(f)
+            writer.writerow([])
+
+        with open('/home/taha/Documents/tkhan/Results/sum_no_update_paths.csv', 'ab') as f:
+            writer = csv.writer(f)
+            writer.writerow([])
         #self.bu_flow = Backup_Paths(msg, self.link_ids, self.datapath_list)
 
     def print_metrics(self):
@@ -101,7 +125,7 @@ class SimpleSwitch14(app_manager.RyuApp):
         parser = dp.ofproto_parser
         if ev.state == handler.MAIN_DISPATCHER:
             self.datapath_list[dp.id] = dp
-            self.logger.info("DPIDDDDDDDDDD: {}".format(dp.id))
+            #self.logger.info("DPIDDDDDDDDDD: {}".format(dp.id))
             msg = 'Join SW'
         elif ev.state == handler.DEAD_DISPATCHER:
             ret = self.datapath_list.pop(dp.id, None)
@@ -110,8 +134,8 @@ class SimpleSwitch14(app_manager.RyuApp):
 
             else:
                 msg = 'Leave sw'
-        self.logger.info('dpid {} {} '.format(msg, self.datapath_list))
-        self.logger.info("port state change event triggered")
+        #self.logger.info('dpid {} {} '.format(msg, self.datapath_list))
+        #self.logger.info("port state change event triggered")
 
     ############  End of Incoming ports at switch 1,4 at port (1) #####################
 
@@ -144,7 +168,7 @@ class SimpleSwitch14(app_manager.RyuApp):
             if link.dst.dpid in self.switches:
                 self.interior_ports[link.dst.dpid].add(link.dst.port_no)
 
-            if len(self.link_to_port) ==42:  ## Update this constant, changed it 12 because running normal topology
+            if len(self.link_to_port) >=42:  ## Update this constant, changed it 12 because running normal topology
                 for i in self.link_to_port.keys():
                     self.key.append(i)
                 for i in self.link_to_port.values():
@@ -160,11 +184,11 @@ class SimpleSwitch14(app_manager.RyuApp):
                         temp[str(key[1])] = value[0];
                         self.switch_io_ports[str(key[0])] = temp;
 
-        self.logger.info("Switch_io_ports: {}".format(self.switch_io_ports))
-        self.logger.info('Link_ids {}'.format(self.link_ids))
-        self.logger.info('Link_to_Port {}'.format(self.link_to_port))
+        #self.logger.info("Switch_io_ports: {}".format(self.switch_io_ports))
+        #self.logger.info('Link_ids {}'.format(self.link_ids))
+        #self.logger.info('Link_to_Port {}'.format(self.link_to_port))
         #self.logger.info('Interior_Ports {}'.format(self.interior_ports))
-        self.logger.info('Link_Pair {}'.format(self.link_pair))
+        #self.logger.info('Link_Pair {}'.format(self.link_pair))
 
     def create_access_ports(self):
         """
@@ -183,7 +207,7 @@ class SimpleSwitch14(app_manager.RyuApp):
         if len(self.dpid_port_set)==14:
             for i in self.dpid_port_set:
                 self.switch_host[str(i[0])] = ('10.0.0.%s' % str(i[0]), i[1])
-            self.logger.info('Switch Host : {}'.format(self.switch_host))
+            #self.logger.info('Switch Host : {}'.format(self.switch_host))
 
     events = [event.EventSwitchEnter,event.EventSwitchLeave]
 
@@ -196,97 +220,138 @@ class SimpleSwitch14(app_manager.RyuApp):
         switch_list = get_switch(self.topology_api_app, None)
         self.create_port_map(switch_list)
         self.switches = self.switch_port_table.keys()
-        if len(self.datapath_list) ==14:      ### constant change with every topology
-            print("Primary Flow Installer Called ")
-            self.path_installer()
-        #self.logger.info("datpath_listttttttttttt {} =".format(self.datapath_list))
 
-    @set_ev_cls(event.EventLinkAdd,event.EventLinkDelete)
+
+    @set_ev_cls(event.EventLinkAdd)#,event.EventLinkDelete)
     def get_links(self, ev):
+        self.num_link_add_event = self.num_link_add_event + 1
         self.logger.info("event : {}".format(ev))
         msg = ev.link.to_dict()
         self.logger.info("Event Link : {}".format(ev))
-        links = get_link(self.topology_api_app, None)
-        self.create_interior_links(links)
+        if self.num_link_add_event == 1:
+            self.links = get_link(self.topology_api_app, None)
+        self.create_interior_links(self.links)
+        print("Finished Create Interior links")
         self.create_access_ports()
-
+        print("Finished Create Access Ports")
+        print("Number of link add event: ",self.num_link_add_event)
+        if self.num_link_add_event ==42:### constant change with every topology
+            #time.sleep(10)
+            #print("Primary Flow Installer Called ")
+            self.path_installer()
+            self.logger.info("datpath_listttttttttttt {} =".format(self.datapath_list))
         #self.logger.info("datapath_list sahi ho ja : {}".format(self.datapath_list))
         self.logger.info("********************from get_links*********************")
 
-        ##self.path_installer()  Throws Error and program terminates
+
+        #self.path_installer()  #Throws Error and program terminates
 
 
     @set_ev_cls(event.EventLinkDelete)
     def port_lost(self, ev):
+        self.num_link_delete_event = self.num_link_delete_event + 1
         self.logger.info("*********Event Link Delete port lost Called**************")
         msg = ev.link.to_dict()
         print("Event Link Delete inside EventLinkDelete",msg)
+        print("Number of link event delete: ", self.num_link_delete_event)
         #self.logger.info("datapath_list sahi ho ja : {}".format(self.datapath_list))
-
+        self.sum_call_for_backup = self.sum_call_for_backup + 1
+        print(" Delete event triggered %d times", self.sum_call_for_backup)
         msg = ev.link.to_dict()
-        if len(self.datapath_list)==14:
+        dpid = []
+        for i in msg.values():
+            dpid.append(int(i['dpid'],16))
 
-            try:
-                sp_active_paths=self.survi_paths.get_active_paths()
-                sp_inactive_paths=self.survi_paths.get_inactive_paths()
-                print("Active Paths", sp_active_paths)
-                print("Inactive Paths from Simulator Requests :", sp_inactive_paths)
-            except:
-                sp_inactive_paths = []
-                sp_active_paths = []
-            bu_flow = shared_back_up_flows.Backup_Paths(msg, self.link_ids, self.datapath_list,sp_active_paths, sp_inactive_paths)
+        print("Links deleted: ", self.links_deleted)
+        print("DPID: ", tuple(dpid))
 
-            sp_bu_paths = self.survi_paths.get_back_up_Paths()
-            sp_link_fail=self.survi_paths.get_link_fail_Map()
+        if self.num_link_add_event >= 42:
 
-            bu_flow.identify_failed_link(sp_link_fail,sp_bu_paths)
+            if tuple(dpid) in self.links_deleted:
+                print("Link deleted already present")
+                pass
+            else:
+                print("NOT present link deleted")
+                try:
+                    sp_active_paths=self.survi_paths.get_active_paths()
+                    sp_inactive_paths=self.survi_paths.get_inactive_paths()
+                    print("Active Paths", sp_active_paths)
+                    print("Inactive Paths from Simulator Requests :", sp_inactive_paths)
+                except:
+                    sp_inactive_paths = []
+                    sp_active_paths = []
+                bu_flow = shared_back_up_flows.Backup_Paths(msg, self.link_ids, self.datapath_list,sp_active_paths, sp_inactive_paths)
 
-            sp_total_paths = self.survi_paths.get_total_Paths()
-            sp_route_map=self.survi_paths.get_routeMap()
-            sp_all_flows = self.survi_paths.get_all_Flows()
-            bu_flow.backup_flow_rule_IDs(sp_total_paths,sp_all_flows)
+                sp_bu_paths = self.survi_paths.get_back_up_Paths()
+                sp_link_fail=self.survi_paths.get_link_fail_Map()
 
+                bu_flow.identify_failed_link(sp_link_fail,sp_bu_paths)
 
-            bu_flow.failed_flow_rule_IDs(sp_total_paths,sp_all_flows)
-            # Delete
-
-            bu_flow.delete_flows_failed_paths()
-            # Add
-
-            bu_flow.add_flows_backup_paths()
-            # Adding the back_up_flows'''
-            self.survi_paths.set_active_paths(bu_flow.get_updated_active_paths())
-            self.survi_paths.set_inactive_paths(bu_flow.get_updated_inactive_paths())
-
-            metrics_list = bu_flow.get_metrics()
-
-            self.sum_active_paths.append(metrics_list[0])
-
-            try:
-                aggregate_backup_occur = self.sum_backup_occur[-1] + metrics_list[1]
-                self.sum_backup_occur.append(aggregate_backup_occur)
-
-                aggregate_backup_fail = self.sum_backup_fail[-1] + metrics_list[2]
-                self.sum_backup_fail.append(aggregate_backup_fail)
-            except:
-                aggregate_backup_occur = metrics_list[1]
-                self.sum_backup_occur.append(aggregate_backup_occur)
-
-                aggregate_backup_fail = metrics_list[2]
-                self.sum_backup_fail.append(aggregate_backup_fail)
+                sp_total_paths = self.survi_paths.get_total_Paths()
+                sp_route_map=self.survi_paths.get_routeMap()
+                sp_all_flows = self.survi_paths.get_all_Flows()
+                bu_flow.backup_flow_rule_IDs(sp_total_paths,sp_all_flows)
 
 
-            self.sum_no_update.append(metrics_list[3])
+                bu_flow.failed_flow_rule_IDs(sp_total_paths,sp_all_flows)
+                # Delete
 
-            self.print_metrics()
+                bu_flow.delete_flows_failed_paths()
+                # Add
+
+                bu_flow.add_flows_backup_paths()
+                # Adding the back_up_flows'''
+                self.survi_paths.set_active_paths(bu_flow.get_updated_active_paths())
+                self.survi_paths.set_inactive_paths(bu_flow.get_updated_inactive_paths())
+
+                metrics_list = bu_flow.get_metrics()
+
+                self.sum_active_paths.append(metrics_list[0])
+
+                try:
+                    aggregate_backup_occur = self.sum_backup_occur[-1] + metrics_list[1]
+                    self.sum_backup_occur.append(aggregate_backup_occur)
+
+                    aggregate_backup_fail = self.sum_backup_fail[-1] + metrics_list[2]
+                    self.sum_backup_fail.append(aggregate_backup_fail)
+                except:
+                    aggregate_backup_occur = metrics_list[1]
+                    self.sum_backup_occur.append(aggregate_backup_occur)
+
+                    aggregate_backup_fail = metrics_list[2]
+                    self.sum_backup_fail.append(aggregate_backup_fail)
+
+                self.sum_no_update.append(metrics_list[3])
+                self.print_metrics()
+                self.print_tofile(metrics_list[0], aggregate_backup_occur,aggregate_backup_fail, metrics_list[3])
+
+        self.links_deleted.add(tuple(dpid))
+        return
+
+    def print_tofile(self, sum_active_path, sum_backup_occur, sum_backup_fail, sum_no_update):
+        file_activePaths = open('/home/taha/Documents/tkhan/Results/sum_active_paths.csv', 'a')
+        file_backupOccur = open('/home/taha/Documents/tkhan/Results/sum_backup_occur_paths.csv', 'a')
+        file_backupFail = open('/home/taha/Documents/tkhan/Results/sum_backup_fail_paths.csv', 'a')
+        file_noUpdate = open('/home/taha/Documents/tkhan/Results/sum_no_update_paths.csv', 'a')
+
+        file_activePaths.write(str(sum_active_path) + ',')
+        file_backupOccur.write(str(sum_backup_occur) + ',')
+        file_backupFail.write("%s," % sum_backup_fail)
+        file_noUpdate.write("%s," % sum_no_update)
+
+        file_activePaths.close()
+        file_backupOccur.close()
+        file_backupFail.close()
+        file_noUpdate.close()
 
     @set_ev_cls(ofp_event.EventOFPPortStatus, MAIN_DISPATCHER)
     def get_port_status(self,ev):
         msg = ev.msg
         self.try_port_state(msg)
     def try_port_state(self,msg):
-        self.logger.info(" Inside Trrrrryyyyyyy Port State")
-        self.logger.info(" Tryyyy Port State: {}".format(msg))
+        pass
+        #self.logger.info(" Inside Trrrrryyyyyyy Port State")
+        #self.logger.info(" Tryyyy Port State: {}".format(msg))
 
 
     def add_flow(self, datapath, priority, match, actions):
@@ -369,8 +434,8 @@ class SimpleSwitch14(app_manager.RyuApp):
             datapath.send_msg(self._build_packet_out(datapath, ofproto.OFP_NO_BUFFER,
                                                      ofproto.OFPP_CONTROLLER, dpid_inport[1], msg.data))
 
-        self.logger.info(
-            "*********************************************************************************")
+        #self.logger.info(
+            #"*********************************************************************************")
         return
 
     #####################################Path_installer######################################
@@ -383,7 +448,7 @@ class SimpleSwitch14(app_manager.RyuApp):
         match = parser.OFPMatch(in_port=in_port, eth_type=0x0800, ipv4_src=flow_info[0], ipv4_dst=flow_info[1])
         inst = [parser.OFPInstructionActions(ofproto.OFPIT_APPLY_ACTIONS, actions)]
         mod = parser.OFPFlowMod(datapath=datapath, priority=1, match=match, instructions=inst)
-        self.logger.info('mod {}'.format(mod))
+        #self.logger.info('mod {}'.format(mod))
         datapath.send_msg(mod)
         return
 
@@ -392,7 +457,7 @@ class SimpleSwitch14(app_manager.RyuApp):
 
     def path_installer(self):
         self.survi_paths = SurvSimReq(self.link_ids, self.datapath_list,self.switch_io_ports,self.switch_host)
-        sp_link_fail = self.survi_paths.get_link_fail_Map()
+        #sp_link_fail = self.survi_paths.get_link_fail_Map()
         flows_req=self.survi_paths.get_all_Flows()
         for key,val in flows_req.items():
             if key[1]==1:
@@ -438,11 +503,11 @@ class SimpleSwitch14(app_manager.RyuApp):
             self.add_flow(datapath, 1, match, actions)
             return
 
-        self.logger.info("packet in {} {} {} {}".format(datapath.id, ethernet_src, ethernet_dst, in_port))
+        #self.logger.info("packet in {} {} {} {}".format(datapath.id, ethernet_src, ethernet_dst, in_port))
 
 
         if arp_header:  # handle arp packets
-            self.logger.info("******ARP Processing********")
+            #self.logger.info("******ARP Processing********")
             self.arp_forwarding(msg, arp_header, datapath, ethernet_header, ethernet_src, ethernet_dst, in_port)
         return
 

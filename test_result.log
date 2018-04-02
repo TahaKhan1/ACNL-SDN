@@ -1,0 +1,5 @@
+('hhhhh', [<Host h1:  pid=4319> , <Host h2:  pid=4321> , <Host h3:  pid=4323> , <Host h4:  pid=4325> , <Host h5:  pid=4327> , <Host h6:  pid=4329> , <Host h7:  pid=4331> , <Host h8:  pid=4333> , <Host h9:  pid=4335> , <Host h10:  pid=4337> , <Host h11:  pid=4339> , <Host h12:  pid=4341> , <Host h13:  pid=4343> , <Host h14:  pid=4345> ])
+('hhhhh', [<Host h1:  pid=5316> , <Host h2:  pid=5318> , <Host h3:  pid=5320> , <Host h4:  pid=5322> , <Host h5:  pid=5324> , <Host h6:  pid=5326> , <Host h7:  pid=5328> , <Host h8:  pid=5330> , <Host h9:  pid=5332> , <Host h10:  pid=5334> , <Host h11:  pid=5336> , <Host h12:  pid=5338> , <Host h13:  pid=5340> , <Host h14:  pid=5342> ])
+mininet> link down
+('hhhhh', [<Host h1:  pid=6903> , <Host h2:  pid=6905> , <Host h3:  pid=6907> , <Host h4:  pid=6909> , <Host h5:  pid=6911> , <Host h6:  pid=6913> , <Host h7:  pid=6915> , <Host h8:  pid=6917> , <Host h9:  pid=6919> , <Host h10:  pid=6921> , <Host h11:  pid=6923> , <Host h12:  pid=6925> , <Host h13:  pid=6927> , <Host h14:  pid=6929> ])
+mininet> link down

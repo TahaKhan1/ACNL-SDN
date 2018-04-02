@@ -8,7 +8,7 @@ import logging
 import shared_simple_switch_13
 import shared_back_up_flows
 import logging
-
+import ast
 
 
 class SurvSimReq():
@@ -41,7 +41,7 @@ class SurvSimReq():
         self.link_fail_Map = {}
         self.back_up_Paths = {}
         self.rsp_routes_u = 0
-        self.rsp_routes=0
+        self.rsp_routes={}
         self.active_paths=[]
         self.inactive_paths=[]
         self.populate_mapd_DB()
@@ -62,17 +62,97 @@ class SurvSimReq():
 
 # populate_maps_DB function:
     def request_routes(self):
-        payload={"routingParams":[{"source":"3", "destinations":[12]},
-                {"source":"3", "destinations":[13]},
-                {"source":"3", "destinations":[14]},
-                {"source":"4", "destinations":[5]},
-                {"source":"4", "destinations":[6]},
-                {"source":"4", "destinations":[7]},
-                {"source":"4", "destinations":[8]},
-                {"source":"4", "destinations":[9]},
-                {"source":"4", "destinations":[10]},
-                {"source":"4", "destinations":[11]},
-                {"source":"4", "destinations":[12]}],
+        payload = {"routingParams": [{"source": "1", "destinations": [2]},
+                                    {"source": "1", "destinations": [3]},
+                                    {"source": "1", "destinations": [4]},
+                                    {"source": "1", "destinations": [5]},
+                                    {"source": "1", "destinations": [6]},
+                                    {"source": "1", "destinations": [7]},
+                                    {"source": "1", "destinations": [8]},
+                                    {"source": "1", "destinations": [9]},
+                                    {"source": "1", "destinations": [10]},
+                                    {"source": "1", "destinations": [11]},
+                                    {"source": "1", "destinations": [12]},
+                                    {"source": "1", "destinations": [13]},
+                                    {"source": "1", "destinations": [14]},
+                                    {"source": "2", "destinations": [3]},
+                                    {"source": "2", "destinations": [4]},
+                                    {"source": "2", "destinations": [5]},
+                                    {"source": "2", "destinations": [6]},
+                                    {"source": "2", "destinations": [7]},
+                                    {"source": "2", "destinations": [8]},
+                                    {"source": "2", "destinations": [9]},
+                                    {"source": "2", "destinations": [10]},
+                                    {"source": "2", "destinations": [11]},
+                                    {"source": "2", "destinations": [12]},
+                                    {"source": "2", "destinations": [13]},
+                                    {"source": "2", "destinations": [14]},
+                                    {"source": "3", "destinations": [4]},
+                                    {"source": "3", "destinations": [5]},
+                                    {"source": "3", "destinations": [6]},
+                                    {"source": "3", "destinations": [7]},
+                                    {"source": "3", "destinations": [8]},
+                                    {"source": "3", "destinations": [9]},
+                                    {"source": "3", "destinations": [10]},
+                                    {"source": "3", "destinations": [11]},
+                                    {"source": "3", "destinations": [12]},
+                                    {"source": "3", "destinations": [13]},
+                                    {"source": "3", "destinations": [14]},
+                                    {"source": "4", "destinations": [5]},
+                                    {"source": "4", "destinations": [6]},
+                                    {"source": "4", "destinations": [7]},
+                                    {"source": "4", "destinations": [8]},
+                                    {"source": "4", "destinations": [9]},
+                                    {"source": "4", "destinations": [10]},
+                                    {"source": "4", "destinations": [11]},
+                                    {"source": "4", "destinations": [12]},
+                                    {"source": "4", "destinations": [13]},
+                                    {"source": "4", "destinations": [14]},
+                                    {"source": "5", "destinations": [6]},
+                                    {"source": "5", "destinations": [7]},
+                                    {"source": "5", "destinations": [8]},
+                                    {"source": "5", "destinations": [9]},
+                                    {"source": "5", "destinations": [10]},
+                                    {"source": "5", "destinations": [11]},
+                                    {"source": "5", "destinations": [12]},
+                                    {"source": "5", "destinations": [13]},
+                                    {"source": "5", "destinations": [14]},
+                                    {"source": "6", "destinations": [7]},
+                                    {"source": "6", "destinations": [8]},
+                                    {"source": "6", "destinations": [9]},
+                                    {"source": "6", "destinations": [10]},
+                                    {"source": "6", "destinations": [11]},
+                                    {"source": "6", "destinations": [12]},
+                                    {"source": "6", "destinations": [13]},
+                                    {"source": "6", "destinations": [14]},
+                                    {"source": "7", "destinations": [8]},
+                                    {"source": "7", "destinations": [9]},
+                                    {"source": "7", "destinations": [10]},
+                                    {"source": "7", "destinations": [11]},
+                                    {"source": "7", "destinations": [12]},
+                                    {"source": "7", "destinations": [13]},
+                                    {"source": "7", "destinations": [14]},
+                                    {"source": "8", "destinations": [9]},
+                                    {"source": "8", "destinations": [10]},
+                                    {"source": "8", "destinations": [11]},
+                                    {"source": "8", "destinations": [12]},
+                                    {"source": "8", "destinations": [13]},
+                                    {"source": "8", "destinations": [14]},
+                                    {"source": "9", "destinations": [10]},
+                                    {"source": "9", "destinations": [11]},
+                                    {"source": "9", "destinations": [12]},
+                                    {"source": "9", "destinations": [13]},
+                                    {"source": "9", "destinations": [14]},
+                                    {"source": "10", "destinations": [11]},
+                                    {"source": "10", "destinations": [12]},
+                                    {"source": "10", "destinations": [13]},
+                                    {"source": "10", "destinations": [14]},
+                                    {"source": "11", "destinations": [12]},
+                                    {"source": "11", "destinations": [13]},
+                                    {"source": "11", "destinations": [14]},
+                                    {"source": "12", "destinations": [13]},
+                                    {"source": "12", "destinations": [14]},
+                                    {"source": "13", "destinations": [14]}],
 
 		"network":{"nodes":["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13","14"],
 		"links":["1-7", "1-11", "1-12", "2-6", "2-10", "3-6", "3-8", "3-12", "4-8", "4-10", "5-6", "5-7",
@@ -86,10 +166,19 @@ class SurvSimReq():
         url = 'http://localhost:9867/simulate'
         headers = {'Content-type': 'application/json'}
         r = requests.post(url, data=json.dumps(payload), headers=headers)
-        print("Status_Code:",r.status_code)
-        self.rsp_routes = r.json()
-        #self.rsp_routes=yaml.safe_load(self.rsp_routes)
-        #print("Type of Json Response Yaml",(self.rsp_routes))
+        #print("Status_Code:",r.status_code)
+        rsp_routes = r.json()
+        #print("RSP_Routes", self.rsp_routes)
+
+        for key in rsp_routes.keys():
+
+            if type(rsp_routes[key]) == bool:
+                valueToDump = json.dumps(str(rsp_routes[key]))
+            else:
+                valueToDump = json.dumps(rsp_routes[key])
+
+            self.rsp_routes[ast.literal_eval(json.dumps(key))] = ast.literal_eval(valueToDump)
+
         return self.rsp_routes
 
     def Update_Pair_Map(self):
@@ -98,7 +187,7 @@ class SurvSimReq():
             self.pairMap[len(self.pairMap) + 1] = tuple(i["pair"],)
             self.pairMap[len(self.pairMap) + 1] = tuple(i["pair"],)[::-1]
 
-        print("pairMap:",self.pairMap)
+        #print("pairMap:",self.pairMap)
         return self.pairMap
 
     def Update_Route_Map(self):
@@ -134,9 +223,9 @@ class SurvSimReq():
         for key, value_list in self.routeMap.items():
             for val in value_list:
                 self.total_Paths.setdefault(key, []).append((key + (val,)))
-        print("\n\n");
-        print("total_Paths:", self.total_Paths)
-        print("Length of Total_Paths : {}".format(len(self.total_Paths)))
+        #print("\n\n");
+        #print("total_Paths:", self.total_Paths)
+        #print("Length of Total_Paths : {}".format(len(self.total_Paths)))
         return self.total_Paths
 
     def Update_All_Flows(self):
@@ -145,7 +234,7 @@ class SurvSimReq():
         for i in self.rsp_routes.values():
             if type(i) == list:
                 for q in range(len(self.rsp_routes["connections"])):
-                    print("qqq", q)
+                    #print("qqq", q)
                     for j in i[q]["routes"]:
                         for e in j:
                             if j.index(e) == 0:  ## for first switch
@@ -184,7 +273,7 @@ class SurvSimReq():
                     rID = 1  ## reverts to 1 after every iteration of primary(src,dst) and reverse(dst,src) iteration.
                     pID = pID + 1
         '''pID increments after every pair of source and destination flow entries are added in primary_flows. i.e, for all the routes of particular  pair source and destionation. So it is incremented first when forward flow entries are done (src,dst) and reverse block is iterated and again incremented when reverse block finishes(dst,src) '''
-        print("All_flows:", self.all_Flows)
+        #print("All_flows:", self.all_Flows)
 
         return self.all_Flows
 
@@ -200,7 +289,7 @@ class SurvSimReq():
                     else:
                         pass
 
-        print("link_fail_Map",self.link_fail_Map)
+        #print("link_fail_Map",self.link_fail_Map)
         return self.link_fail_Map
 
     def Update_Back_Up_Flows(self):
@@ -218,7 +307,7 @@ class SurvSimReq():
                 if p_key not in self.total_Paths:
                     break
 
-        print("back_up_paths", self.back_up_Paths)
+        #print("back_up_paths", self.back_up_Paths)
         return self.back_up_Paths
 
     def get_routeMap(self):
@@ -241,7 +330,7 @@ class SurvSimReq():
 
     def set_active_paths(self,active_paths):
         self.active_paths=active_paths
-        print("Active Paths",self.active_paths)
+        #print("Active Paths",self.active_paths)
         return
 
     def get_inactive_paths(self):
@@ -249,7 +338,7 @@ class SurvSimReq():
 
     def set_inactive_paths(self,inactive_paths):
         self.inactive_paths=inactive_paths
-        print("Inactive Paths from Simulator Requests :",self.inactive_paths)
+        #print("Inactive Paths from Simulator Requests :",self.inactive_paths)
         return
 
 
