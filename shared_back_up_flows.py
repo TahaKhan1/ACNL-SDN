@@ -42,6 +42,7 @@ class Backup_Paths():
         self.sum_backup_occur=0
         self.sum_backup_fail=0
         self.sum_no_update=0
+        self.sum_open_flow=0
 
         # flows[0] = self.paths[self.failed_paths[0]]
     def get_updated_active_paths(self):
@@ -142,7 +143,6 @@ class Backup_Paths():
 
     ### failed_path=[[(2,2),(4,1)]
 
-
     def backup_flow_rule_IDs(self,sp_total_paths,sp_all_flows):
         #print("Backup_Flow_Rule_IDSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS")
         #print("Length of All Flows using object:",len(sp_all_flows))
@@ -158,9 +158,10 @@ class Backup_Paths():
                     #print("total_paths keyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy",key)
                     if path_rule == key:
                         self.backup_flows[len(self.backup_flows)+1] = val
+        self.sum_open_flow = self.sum_open_flow +len(self.backup_flows)
         #print("Backup_Flows in method shared_back_up_flows",self.backup_flows)
         #self.result_unaffected_flows[len(self.result_unaffected_flows)+1]=len(sp_all_flows)-len(self.backup_flows)
-        #print("Number of Unaffected flows are each single link failures :{}", self.result_unaffected_flows)
+
 
         #self.backup_flows.append(sp_total_paths[path_rule])
         #print("Backup Paths dict: {}".format(self.backup_flows))
@@ -178,8 +179,7 @@ class Backup_Paths():
                     if flow_dis == key:
                         self.failed_flows[len(self.failed_flows)+1] = val
         #print("Flows to be deleted Failed Flows : {}".format(self.failed_flows))
-        self.result_affected_flows[len(self.result_affected_flows)+1]=len(self.failed_flows)
-        #print("Number of affected flows are each single link failures :{}",self.result_affected_flows)
+        self.sum_open_flow= self.sum_open_flow + len(self.failed_flows)
 
     ### Making failed_flows and backup_flows a list in which primary_flows(tuples) are
     ### appended and later will be iterated in methods like delete_flows_failed_paths
@@ -215,6 +215,7 @@ class Backup_Paths():
             i[0].send_msg(mod)
 
     def get_metrics(self):
+        self.metrics.append(self.sum_open_flow); #element 4
         return self.metrics
 
     def print_metrics(self):
@@ -222,6 +223,7 @@ class Backup_Paths():
         print("Sum Backup Paths: ", self.sum_backup_occur)
         print("Sum Backup Fail: ", self.sum_backup_fail)
         print("Sum No Update: ", self.sum_no_update)
+        print("Sum Open Flow", self.sum_open_flow)
 
 
     #print("Nata")

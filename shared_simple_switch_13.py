@@ -67,6 +67,7 @@ class SimpleSwitch14(app_manager.RyuApp):
         self.sum_backup_occur=[]
         self.sum_backup_fail=[]
         self.sum_no_update=[]
+        self.sum_open_flow=[]
         self.sum_call_for_backup=0
         self.num_link_add_event=0
         self.num_link_delete_event=0
@@ -89,6 +90,10 @@ class SimpleSwitch14(app_manager.RyuApp):
         with open('/home/taha/Documents/tkhan/Results/sum_no_update_paths.csv', 'ab') as f:
             writer = csv.writer(f)
             writer.writerow([])
+
+        with open('/home/taha/Documents/tkhan/Results/sum_open_flow.csv', 'ab') as f:
+            writer = csv.writer(f)
+            writer.writerow([])
         #self.bu_flow = Backup_Paths(msg, self.link_ids, self.datapath_list)
 
     def print_metrics(self):
@@ -96,6 +101,7 @@ class SimpleSwitch14(app_manager.RyuApp):
         print("Sum Backup Paths: ", self.sum_backup_occur)
         print("Sum Backup Fail: ", self.sum_backup_fail)
         print("Sum No Update: ", self.sum_no_update)
+        print("Sum Open Flow: ", self.sum_open_flow)
 
     @set_ev_cls(ofp_event.EventOFPSwitchFeatures, CONFIG_DISPATCHER)
     def switch_features_handler(self, ev):
@@ -314,6 +320,10 @@ class SimpleSwitch14(app_manager.RyuApp):
 
                     aggregate_backup_fail = self.sum_backup_fail[-1] + metrics_list[2]
                     self.sum_backup_fail.append(aggregate_backup_fail)
+
+                    aggregate_open_flow =self.sum_open_flow[-1] + metrics_list[4]
+                    self.sum_open_flow.append(aggregate_open_flow)
+
                 except:
                     aggregate_backup_occur = metrics_list[1]
                     self.sum_backup_occur.append(aggregate_backup_occur)
@@ -321,28 +331,36 @@ class SimpleSwitch14(app_manager.RyuApp):
                     aggregate_backup_fail = metrics_list[2]
                     self.sum_backup_fail.append(aggregate_backup_fail)
 
+                    aggregate_open_flow = metrics_list[4]
+                    self.sum_open_flow.append(aggregate_open_flow)
+
+
                 self.sum_no_update.append(metrics_list[3])
                 self.print_metrics()
-                self.print_tofile(metrics_list[0], aggregate_backup_occur,aggregate_backup_fail, metrics_list[3])
+                self.print_tofile(metrics_list[0], aggregate_backup_occur,aggregate_backup_fail, metrics_list[3],aggregate_open_flow)
 
         self.links_deleted.add(tuple(dpid))
         return
 
-    def print_tofile(self, sum_active_path, sum_backup_occur, sum_backup_fail, sum_no_update):
+    def print_tofile(self, sum_active_path, sum_backup_occur, sum_backup_fail, sum_no_update,sum_open_flow):
         file_activePaths = open('/home/taha/Documents/tkhan/Results/sum_active_paths.csv', 'a')
         file_backupOccur = open('/home/taha/Documents/tkhan/Results/sum_backup_occur_paths.csv', 'a')
         file_backupFail = open('/home/taha/Documents/tkhan/Results/sum_backup_fail_paths.csv', 'a')
         file_noUpdate = open('/home/taha/Documents/tkhan/Results/sum_no_update_paths.csv', 'a')
+        file_OpenFlow = open('/home/taha/Documents/tkhan/Results/sum_open_flow.csv', 'a')
+
 
         file_activePaths.write(str(sum_active_path) + ',')
         file_backupOccur.write(str(sum_backup_occur) + ',')
         file_backupFail.write("%s," % sum_backup_fail)
         file_noUpdate.write("%s," % sum_no_update)
+        file_OpenFlow.write("%s," % sum_open_flow)
 
         file_activePaths.close()
         file_backupOccur.close()
         file_backupFail.close()
         file_noUpdate.close()
+        file_OpenFlow.close()
 
     @set_ev_cls(ofp_event.EventOFPPortStatus, MAIN_DISPATCHER)
     def get_port_status(self,ev):
